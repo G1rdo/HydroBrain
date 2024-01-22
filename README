@@ -1,0 +1,4 @@
+This project is a program to be run on a Raspberry Pi as the brain of a hydroponic system. 
+The goal is to help students learn about biology. 
+This system is meant to be used for small (or large with added units) scale experiments, emphasizing affordability and accessibility. 
+To support this goal, the program is controlled by a website hosted on the Pi, with an SQL database containing all the sensor data.
