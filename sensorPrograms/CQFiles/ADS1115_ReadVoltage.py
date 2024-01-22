@@ -1,3 +1,5 @@
+# NOTE: this code is not mine, see README
+# This is the sensor code for the QCRobot CQRSENTDS01 sensor, and is to be run after the startup one
 import sys
 sys.path.append('../')
 import time
