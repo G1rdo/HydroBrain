@@ -4,4 +4,4 @@ My vision is for my designs and software to be deployed in schools around the wo
 The goal is to help students learn about biology and apply computer science skills.
 This system is meant to be used for small (or large with added units) scale experiments, emphasizing affordability and accessibility. 
 To support this goal, the program is controlled by a website hosted on the Pi, with an SQL database containing all the sensor data.
-The software which is meant to be modified is to be written in the most common languages taught in schools. Python and MySQL, with c++ used only when necessary for sensors.
+The software which is meant to be modified is to be written in the most common languages taught in schools. Python and MariaDB (for its complete backward compatibility with MySQL), with c++ used only when necessary for sensors.
