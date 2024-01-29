@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-#preferences/advanced preferences/Labquest App
 from logging import exception
-#import urllib.request, urllib.error, urllib.parse
 import requests
 from time import sleep
 '''
@@ -28,7 +26,6 @@ try:
 except:
     raise Exception("Can't connect the the sensor, verify it is online, data sharing is enabled, you are connected to the same internet, and that it's ip adress is correct.")
 fullResponse = response.json()
-#print(fullResponse)
 canControl = response.json()["collection"]["canControl"]
 print(canControl)
 isCollecting = response.json()["collection"]["isCollecting"]
