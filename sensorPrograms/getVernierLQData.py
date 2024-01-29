@@ -18,7 +18,7 @@ configuration to manual (don't change other values), and then in the admin confi
 #config, could probably be done a better way
 import sys
 #It needs to know the Ip adress to connect to and the sample rate in seconds
-DataShareAdress = "192.168.1.213"
+DataShareAdress = "Ip address expunged"
 sampleRate = 1
 
 
