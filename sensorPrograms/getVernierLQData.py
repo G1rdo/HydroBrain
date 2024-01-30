@@ -2,6 +2,8 @@
 from logging import exception
 import requests
 from time import sleep
+import mariadb
+
 '''
 Please ensure the following settings are set:
 Under home/preferences/advanced preferences/Labquest App, set
@@ -18,6 +20,7 @@ import sys
 #It needs to know the Ip adress to connect to and the sample rate in seconds
 DataShareAdress = "Ip address expunged"
 sampleRate = 1
+knownNames = {"pH": "ph", "PH-BTA"}
 
 
 #Find current host status
@@ -89,8 +92,22 @@ for columnID in sets[currentSetID]["colIDs"]:
 
     print(f'{name} recorded as {value} {units} at {timeStamp}')
     #TODO:Format this as SQL query
-
-
+    try:
+        conn = mariadb.connect(
+            user="db_user",
+            password="db_user_passwd",
+            host="127.0.0.1",
+            port=3306,
+            database=None
+        )
+    except mariadb.Error as e:
+        print(f"Error connecting to MariaDB Platform: {e}")
+        sys.exit(1)
+    cur = conn.cursor()
+    if name in knownNames:
+        cursor.execute(
+                "INSERT INTO " + knownNames[name] + " (probe_name, value, sensor_timestamp) VALUES (?, ?, ?)", 
+                (knownNames[name][1], value, timeStamp))
 
 
 sleep(1)
