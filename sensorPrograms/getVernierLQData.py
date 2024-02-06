@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 from logging import exception
 import requests
 from time import sleep
@@ -8,27 +7,6 @@ from datetime import datetime, timezone
 from email.message import EmailMessage
 import ssl
 import smtplib
-
-emailSender = 'hydrobrain0@gmail.com'
-emailPassword = 'nydp dgsc ahjc oqgw'
-emailReceivers = 'robert@gordick.com', '67robegord@csdecatur.net'
-
-subject = 'Subject test 2, multiple people'
-body = """
-Stuff is hapening! Cool stuff!
-"""
-
-em = EmailMessage()
-em['From'] = emailSender
-em['To'] = emailReceiverList
-em['Subject'] = subject
-em.set_content(body)
-
-context = ssl.create_default_context()
-
-with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
-    smtp.login(emailSender, emailPassword)
-    smtp.sendmail(emailSender, emailReceiverList, em.as_string())
 
 '''
 Please ensure the following settings are set:
@@ -51,9 +29,28 @@ sampleRate = config['vernier.getLQData']['serverSampleRate']
 SQLNames = {"pH": "ph"} 
 sensorNames = {"pH": "PH-BTA"}
 dataBasePassword = config['database']['dataBasePassword']
+emailSender = config['general']['sendFromEmail']
+emailPassword = config['general']['emailPassword']
+emailReceivers = config['general']['emailReceivers']
+
+
+#TODO Make this actually do something
 timeZone = str(config['general']['timeZone'])
 
+def sendEmail(emailSender, emailPassword, emailReceivers, subject, body):
+    print(emailSender)
+    print(emailPassword)
+    em = EmailMessage()
+    em['From'] = emailSender
+    em['To'] = emailReceivers
+    em['Subject'] = subject
+    em.set_content(body)
 
+    context = ssl.create_default_context()
+
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
+        smtp.login(emailSender, emailPassword)
+        smtp.sendmail(emailSender, emailReceivers, em.as_string())
 #Find current host status
 try:
     response = requests.get("http://" + DataShareAdress + "/status")
@@ -116,6 +113,29 @@ for columnID in sets[currentSetID]["colIDs"]:
 
     if timeStamp == "":
         raise Exception("Data is being returned as empty, this can be caused by interpolate time-based data being set to false(see note at top of file)")
+    if name == "pH":
+        if value < 5.5:
+            sendEmail(
+                emailSender,
+                emailPassword,
+                emailReceivers,
+                'PH dropped below acceptable levels',
+                """
+                Hydrobrain detected a pH level below 5.5 today
+                """
+            )
+            print("pH too low")
+        elif value > 6.5:
+            sendEmail(
+                emailSender,
+                emailPassword,
+                emailReceivers,
+                'PH dropped below acceptable levels',
+                """
+                Hydrobrain detected a pH level above 6.5 today
+                """
+            )
+            print("pH too high")
     print(f'{name} recorded as {value} {units} at {timeStamp}')
     #TODO:Format this as SQL query
     try:
