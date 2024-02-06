@@ -5,7 +5,30 @@ from time import sleep
 import mariadb
 import configparser
 from datetime import datetime, timezone
+from email.message import EmailMessage
+import ssl
+import smtplib
 
+emailSender = 'hydrobrain0@gmail.com'
+emailPassword = 'nydp dgsc ahjc oqgw'
+emailReceivers = 'robert@gordick.com', '67robegord@csdecatur.net'
+
+subject = 'Subject test 2, multiple people'
+body = """
+Stuff is hapening! Cool stuff!
+"""
+
+em = EmailMessage()
+em['From'] = emailSender
+em['To'] = emailReceiverList
+em['Subject'] = subject
+em.set_content(body)
+
+context = ssl.create_default_context()
+
+with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
+    smtp.login(emailSender, emailPassword)
+    smtp.sendmail(emailSender, emailReceiverList, em.as_string())
 
 '''
 Please ensure the following settings are set:
@@ -93,7 +116,6 @@ for columnID in sets[currentSetID]["colIDs"]:
 
     if timeStamp == "":
         raise Exception("Data is being returned as empty, this can be caused by interpolate time-based data being set to false(see note at top of file)")
-
     print(f'{name} recorded as {value} {units} at {timeStamp}')
     #TODO:Format this as SQL query
     try:
