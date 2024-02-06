@@ -45,19 +45,19 @@ echo "Inserting data into ph table..."
  
  
 query1="use sensor_data; INSERT INTO ph (probe_name, ph, sensor_timestamp) \
-        VALUES('PH-BTA', 3.14149, '2023-4-21 12:1')"
+        VALUES('PH-BTA', 3.14149, '2024-02-06 00:33:06+00:00')"
  
  
 query2="use sensor_data; INSERT INTO ph (probe_name, ph, sensor_timestamp) \
-        VALUES('PH-BTA', 3.14149, '2023-4-21 12:1')"
+        VALUES('PH-BTA', 3.14149, '2024-02-06 00:33:06+00:00')"
  
  
 query3="use sensor_data; INSERT INTO ph (probe_name, ph, sensor_timestamp) \
-        VALUES('PH-BTA', 30.222, '2024-07-22 12:12:13')"
+        VALUES('PH-BTA', 30.222, '2024-02-06 00:33:06+00:00')"
  
  
 query4="use sensor_data; INSERT INTO ph (probe_name, ph, sensor_timestamp) \
-        VALUES('E-312', 11.0011111111, '2001-07-22 12:12:14')"
+        VALUES('E-312', 11.0011111111, '2024-02-06 00:33:06+00:00')"
  
  
  
@@ -70,7 +70,6 @@ sudo mariadb -e "$query4"
  
  
 echo "Inserting dummy data into ph table finished"
-
 
 
 
