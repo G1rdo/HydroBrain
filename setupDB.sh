@@ -73,7 +73,7 @@ echo "Inserting dummy data into ph table finished"
 
 
 
-
+<< com
 echo "Creating staging database..."
  
 sudo mariadb -e "CREATE DATABASE IF NOT EXISTS staging"
@@ -176,6 +176,8 @@ echo "Creating production_user and grant all permissions to production database.
 sudo mariadb -e "CREATE USER IF NOT EXISTS 'production_user'@'localhost' IDENTIFIED BY 'password2'"
  
 sudo mariadb -e "GRANT ALL PRIVILEGES ON production.* to 'production_user'@'localhost'"
- 
+
+com
+
 # Make our changes take effect
 sudo mariadb -e "FLUSH PRIVILEGES"
