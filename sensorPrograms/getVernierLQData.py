@@ -3,6 +3,9 @@ from logging import exception
 import requests
 from time import sleep
 import mariadb
+import configparser
+from datetime import datetime, timezone
+
 
 '''
 Please ensure the following settings are set:
@@ -13,14 +16,19 @@ configuration to manual (don't change other values), and then in the admin confi
 
 '''
 
+config = configparser.ConfigParser()
+config.read('HydroBrain/config.ini')
 
-
-#config, could probably be done a better way
-import sys
+print(config)
+print(config.sections())
 #It needs to know the Ip adress to connect to and the sample rate in seconds
-DataShareAdress = "Ip address expunged"
-sampleRate = 1
-knownNames = {"pH": "ph", "PH-BTA"}
+DataShareAdress = config['vernier.getLQData']['LabQuestIp']
+print(DataShareAdress)
+sampleRate = config['vernier.getLQData']['serverSampleRate']
+SQLNames = {"pH": "ph"} 
+sensorNames = {"pH": "PH-BTA"}
+dataBasePassword = config['database']['dataBasePassword']
+timeZone = str(config['general']['timeZone'])
 
 
 #Find current host status
@@ -78,15 +86,11 @@ currentSetID = setNumbers[max(setNumbers)]
 
 for columnID in sets[currentSetID]["colIDs"]:
     print(columnID)
-    #print(columns[columnID])
     name = columns[columnID]["name"]
     value = columns[columnID]["liveValue"]
     units = columns[columnID]["units"]
-    timeStamp = columns[columnID]["liveValueTimeStamp"]
+    timeStamp = datetime.fromtimestamp(columns[columnID]["liveValueTimeStamp"], timezone.utc)
 
-    # If the graph has been going for more than 100 seconds, turn it off once data collection is finished
-    if name == "Time" and int(value) > 100:
-        previouslyCollecting = False
     if timeStamp == "":
         raise Exception("Data is being returned as empty, this can be caused by interpolate time-based data being set to false(see note at top of file)")
 
@@ -94,20 +98,21 @@ for columnID in sets[currentSetID]["colIDs"]:
     #TODO:Format this as SQL query
     try:
         conn = mariadb.connect(
-            user="db_user",
-            password="db_user_passwd",
+            user="root", 
+            password=dataBasePassword,
             host="127.0.0.1",
             port=3306,
-            database=None
+            database='sensor_data'
         )
     except mariadb.Error as e:
         print(f"Error connecting to MariaDB Platform: {e}")
-        sys.exit(1)
-    cur = conn.cursor()
-    if name in knownNames:
+        raise Exception("Error occured connecting to MariaDB")
+    cursor = conn.cursor()
+    if name in SQLNames:
+        print(SQLNames[name])
         cursor.execute(
-                "INSERT INTO " + knownNames[name] + " (probe_name, value, sensor_timestamp) VALUES (?, ?, ?)", 
-                (knownNames[name][1], value, timeStamp))
+                "INSERT INTO " + SQLNames[name] + " (probe_name, " + SQLNames[name] + ", sensor_timestamp) VALUES (?, ?, ?)", 
+                (sensorNames[name], value, timeStamp))
 
 
 sleep(1)
