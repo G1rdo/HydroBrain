@@ -9,8 +9,11 @@ sudo apt-get install build-essential git python-dev python-smbus code -y
 #MariaDB
 sudo apt install libmariadb3 libmariadb-dev
 
-#TODO Find some way around having to break system packages
-sudo pip3 install mariadb==1.1.9 --break-system-packages
+#Create venv for python packages 
+python3 -m venv hydrobrain_venv
+source hydrobrain_venv/bin/activate
+
+sudo pip3 install mariadb==1.1.9
 
 
 #To update this file with running OS's options, use dpkg --get-selections and paste them
