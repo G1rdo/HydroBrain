@@ -15,5 +15,9 @@ source hydrobrain_venv/bin/activate
 
 sudo pip3 install mariadb==1.1.9
 
+#Website
+echo "WARNING: apache2 will be uninstalled if it is already on the system"
+sudo chmod og+x website
+sudo apt remove apache2
 
 #To update this file with running OS's options, use dpkg --get-selections and paste them
