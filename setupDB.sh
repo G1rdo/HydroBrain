@@ -7,18 +7,21 @@ sudo apt-get install mariadb-server -y
 sudo systemctl enable mariadb
 sudo systemctl start mariadb
  
-root_password=$(sed -nr "/^\[database\]/ { :l /^dataBasePassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" ./config.ini)
+root_password=$(sed -nr "/^\[database\]/ { :l /^dataBaseMainPassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" ./config.ini)
 echo $root_password
 supportedpHSensors=$(sed -nr "/^\[database\]/ { :l /^supportedpHSensors[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" ./config.ini)
 echo $supportedpHSensors
+reader_password=$(sed -nr "/^\[database\]/ { :l /^dataBaseReaderPassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" ./config.ini)
+echo $reader_password
 
-sudo mariadb -e "SET PASSWORD FOR root@localhost = PASSWORD('$root_password');FLUSH PRIVILEGES;" 
+sudo mariadb -e "SET PASSWORD FOR root@localhost = PASSWORD('ChangeMe');FLUSH PRIVILEGES;" 
+#TODO: This is a temporary fix, and while it works on rasbian so its fine for most rpis, it won't work on ubunto because the standard input is different
+#If you have a ubuntu machine and for some reason you want to use this, comment this out and do it yourself, putting in the password stored in config, no, no, no, yes, yes, yes. (or make a pull request and fix it for everyone)
 printf "$root_password\n n\n n\n n\n y\n y\n y\n" | sudo mysql_secure_installation
-
  
 # Make sure that NOBODY can access the server without a password
 sudo mariadb -e "UPDATE mysql.user SET Password = PASSWORD('$root_password') WHERE User = 'root'"
- 
+
 # Kill the anonymous users
 sudo mariadb -e "DROP USER IF EXISTS ''@'localhost'"
 # Because our hostname varies we'll use some Bash magic here.
@@ -179,5 +182,10 @@ sudo mariadb -e "GRANT ALL PRIVILEGES ON production.* to 'production_user'@'loca
 
 com
 
+echo "Creating site_reader and grant all permissions to production database..."
+ 
+sudo mariadb -e "CREATE USER IF NOT EXISTS 'site_reader'@'localhost' IDENTIFIED BY '$reader_password'"
+sudo mariadb -e "GRANT ALL PRIVILEGES ON production.* to 'site_reader'@'localhost'"
+sudo mariadb -e "GRANT SELECT ON *.* TO 'site_reader'@'localhost' IDENTIFIED BY '$reader_password';"
 # Make our changes take effect
 sudo mariadb -e "FLUSH PRIVILEGES"
