@@ -20,6 +20,9 @@ echo "WARNING: apache2 will be uninstalled if it is already on the system"
 sudo chmod og+x website
 sudo apt remove apache2
 
+#Moves the website folder from the hydrobrain folder into nginx
+sudo mv ~/HydroBrain/website /etc/nginx/sites-available
+
 sudo systemctl start nginx
 #Turns on website on device startup
 sudo systemctl enable nginx
