@@ -17,7 +17,7 @@ echo $reader_password
 sudo mariadb -e "SET PASSWORD FOR root@localhost = PASSWORD('ChangeMe');FLUSH PRIVILEGES;" 
 #TODO: This is a temporary fix, and while it works on rasbian so its fine for most rpis, it won't work on ubunto because the standard input is different
 #If you have a ubuntu machine and for some reason you want to use this, comment this out and do it yourself, putting in the password stored in config, no, no, no, yes, yes, yes. (or make a pull request and fix it for everyone)
-printf "$root_password\n n\n n\n n\n y\n y\n y\n" | sudo mysql_secure_installation
+printf "$root_password\n n\n n\n n\n y\n y\n y\n" | sudo mariadb-secure-installation
  
 # Make sure that NOBODY can access the server without a password
 sudo mariadb -e "UPDATE mysql.user SET Password = PASSWORD('$root_password') WHERE User = 'root'"
