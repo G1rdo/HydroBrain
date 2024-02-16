@@ -25,7 +25,7 @@ sudo apt remove apache2
 sudo apt-get autoremove
 
 #Moves the website folder from the hydrobrain folder into nginx
-sudo mv ~/HydroBrain/website /etc/nginx/sites-available
+sudo mv ~/HydroBrain/website /var/www
 
 #sudo systemctl start nginx
 #Turns on website on device startup
