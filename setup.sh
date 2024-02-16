@@ -6,8 +6,10 @@ sudo raspi-config nonint do_i2c 0
 sudo raspi-config nonint do_serial_hw 0
 sudo raspi-config nonint do_serial_cons 0
 # Install dependencies
-sudo apt-get install build-essential git python3 code nginx mariadb-server -y
+sudo apt-get install build-essential git python3 code nginx mariadb-server sed -y
 
+#Get variables
+websitePort=$(sed -nr "/^\[website\]/ { :l /^dataBaseMainPassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" ./config.ini)
 
 #MariaDB
 
@@ -24,11 +26,16 @@ sudo chmod og+x website
 sudo apt remove apache2
 sudo apt-get autoremove
 
-#Moves the website folder from the hydrobrain folder into nginx
-sudo mv ~/HydroBrain/website /var/www
+#Sets the port the site is hosted on
+sed -e "s/{portvar}/$websitePort/g" ~/HydroBrain/nginx/nginx_template.conf > ~/HydroBrain/nginx/nginx.conf
+sudo mv ~/HydroBrain/nginx/nginx.conf /etc/nginx
 
-#sudo systemctl start nginx
+
+#Moves the website folder from the hydrobrain folder into nginx
+sudo mv ~/HydroBrain/nginx/website /var/www
+
+sudo systemctl start nginx
 #Turns on website on device startup
-#sudo systemctl enable nginx
+sudo systemctl enable nginx
 
 #To update this file with running OS's options, use dpkg --get-selections and paste them
