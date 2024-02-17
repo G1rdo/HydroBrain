@@ -12,6 +12,10 @@ sudo apt-get install build-essential git python3 code nginx mariadb-server sed -
 websitePort=$(sed -nr "/^\[website\]/ { :l /^dataBaseMainPassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" ./config.ini)
 
 #MariaDB
+#Make database start on system turning on
+sudo systemctl enable mariadb
+#Start database
+sudo systemctl start mariadb
 
 #Create venv for python packages 
 python3 -m venv hydrobrain_venv
