@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 from logging import exception
 import requests
 from time import sleep
@@ -8,6 +8,9 @@ from datetime import datetime, timezone
 from email.message import EmailMessage
 import ssl
 import smtplib
+import os
+import ast
+
 
 '''
 Please ensure the following settings are set:
@@ -19,24 +22,24 @@ configuration to manual (don't change other values), and then in the admin confi
 '''
 
 config = configparser.ConfigParser()
-config.read('HydroBrain/config.ini')
+config.read_file(open(os.path.expanduser("~") + "/HydroBrain/config.ini"))
 
-print(config)
 print(config.sections())
-#It needs to know the Ip adress to connect to and the sample rate in seconds
 DataShareAdress = config['vernier.getLQData']['LabQuestIp']
 print(DataShareAdress)
-sampleRate = config['vernier.getLQData']['serverSampleRate']
-SQLNames = {"pH": "ph"} 
-sensorNames = {"pH": "PH-BTA"}
-dataBasePassword = config['database']['dataBasePassword']
+sampleRate = int(config['vernier.getLQData']['serverSampleRate'])
+SQLNames = ast.literal_eval(config['vernier.getLQData']['SQLTableNames'])
+sensorNames = ast.literal_eval(config['vernier.getLQData']['sensorNames'])
+dataBasePassword = config['database']['dataBaseMainPassword']
 emailSender = config['general']['sendFromEmail']
 emailPassword = config['general']['emailPassword']
 emailReceivers = config['general']['emailReceivers']
+dimensionless = config['general']['dimensionlessVariables']
+print(dimensionless)
 
 
 #TODO Make this actually do something
-timeZone = str(config['general']['timeZone'])
+#timeZone = str(config['general']['timeZone'])
 
 def sendEmail(emailSender, emailPassword, emailReceivers, subject, body):
     print(emailSender)
@@ -59,9 +62,9 @@ except:
     raise Exception("Can't connect the the sensor, verify it is online, data sharing is enabled, you are connected to the same internet, and that it's ip adress is correct.")
 fullResponse = response.json()
 canControl = response.json()["collection"]["canControl"]
-print(canControl)
+print("Script has permissions to start data collection: " + str(canControl))
 isCollecting = response.json()["collection"]["isCollecting"]
-print(isCollecting)
+print("Vernier LabQuest is already collecting data: " + str(isCollecting))
 previouslyCollecting = isCollecting
 
 #Start it collecting if not already, verify agent credentials function
@@ -87,75 +90,93 @@ else:
 
 
 sleep(4)
+for i in range(0, 60):
+    sleep(sampleRate)
+    response = requests.get("http://" + DataShareAdress + "/status")
+    responseData = response.json()
+    timeRecorded = responseData["columnListTimeStamp"] #Note that this value is in Epoch Seconds, use online converter to find human readable timestamp
 
+    #Finds which data set is the most recent (hihgest value in set number)
+    sets = responseData["sets"]
+    columns = responseData["columns"]
 
-response = requests.get("http://" + DataShareAdress + "/status")
-responseData = response.json()
-timeRecorded = responseData["columnListTimeStamp"] #Note that this value is in Epoch Seconds, use online converter to find human readable timestamp
+    setNumbers = {
+    }
+    #I am sorry for this horrible naming convention, Vernier decided that their Jsons needed to be like this
+    for setNum in sets:
+        setNumbers[sets[setNum]["position"]]=setNum
+    #print("The biggest number is:", max(setNumbers), " and it's ID is:", setNumbers[max(setNumbers)])
+    currentSetID = setNumbers[max(setNumbers)]
 
-#Finds which data set is the most recent (hihgest value in set number)
-sets = responseData["sets"]
-columns = responseData["columns"]
+    for columnID in sets[currentSetID]["colIDs"]:
+        print(columnID)
+        name = columns[columnID]["name"]
+        value = float(columns[columnID]["liveValue"])
+        units = columns[columnID]["units"]
+        #timeStamp = datetime.fromtimestamp(columns[columnID]["liveValueTimeStamp"], timezone.utc)
+        timeStamp = datetime.fromtimestamp(columns[columnID]["liveValueTimeStamp"])
 
-setNumbers = {
-}
-#I am sorry for this horrible naming convention, Vernier decided that their Jsons needed to be like this
-for setNum in sets:
-    setNumbers[sets[setNum]["position"]]=setNum
-#print("The biggest number is:", max(setNumbers), " and it's ID is:", setNumbers[max(setNumbers)])
-currentSetID = setNumbers[max(setNumbers)]
-
-for columnID in sets[currentSetID]["colIDs"]:
-    print(columnID)
-    name = columns[columnID]["name"]
-    value = columns[columnID]["liveValue"]
-    units = columns[columnID]["units"]
-    timeStamp = datetime.fromtimestamp(columns[columnID]["liveValueTimeStamp"], timezone.utc)
-
-    if timeStamp == "":
-        raise Exception("Data is being returned as empty, this can be caused by interpolate time-based data being set to false(see note at top of file)")
-    if name == "pH":
-        if value < 5.5:
-            sendEmail(
-                emailSender,
-                emailPassword,
-                emailReceivers,
-                'PH dropped below acceptable levels',
-                """
-                Hydrobrain detected a pH level below 5.5 today
-                """
+        if timeStamp == "":
+            raise Exception("Data is being returned as empty, this can be caused by interpolate time-based data being set to false(see note at top of file)")
+        if name == "pH":
+            if value < 5.5:
+                sendEmail(
+                    emailSender,
+                    emailPassword,
+                    emailReceivers,
+                    'PH dropped below acceptable levels',
+                    """
+                    Hydrobrain detected a pH level below 5.5 today
+                    """
+                )
+                print("pH too low")
+            elif value > 67.5:
+                sendEmail(
+                    emailSender,
+                    emailPassword,
+                    emailReceivers,
+                    'PH dropped below acceptable levels',
+                    """
+                    Hydrobrain detected a pH level above 6.5 today
+                    """
+                )
+                print("pH too high")
+        print(f'{name} recorded as {value} {units} at {timeStamp}')
+        #TODO:Format this as SQL query
+        try:
+            conn = mariadb.connect(
+                user="root", 
+                password=dataBasePassword,
+                host="127.0.0.1",
+                port=3306,
+                database='sensor_data',
+                autocommit=True
             )
-            print("pH too low")
-        elif value > 6.5:
-            sendEmail(
-                emailSender,
-                emailPassword,
-                emailReceivers,
-                'PH dropped below acceptable levels',
-                """
-                Hydrobrain detected a pH level above 6.5 today
-                """
-            )
-            print("pH too high")
-    print(f'{name} recorded as {value} {units} at {timeStamp}')
-    #TODO:Format this as SQL query
-    try:
-        conn = mariadb.connect(
-            user="root", 
-            password=dataBasePassword,
-            host="127.0.0.1",
-            port=3306,
-            database='sensor_data'
+        except mariadb.Error as e:
+            print(f"Error connecting to MariaDB Platform: {e}")
+            raise Exception("Error occured connecting to MariaDB")
+    
+        cursor = conn.cursor()
+        #TODO: add a warning about unknown sensors for this if statement
+        if name in SQLNames:
+            if units == "":
+                units = name
+            print(type(sensorNames))
+            print(sensorNames)
+            print(name)
+            print(sensorNames[name])
+            print(str(sensorNames[name])) #+ str(value) + units + "\", \"" + str(timeStamp))
+            query = str("INSERT INTO " + str(SQLNames[name]) + " (probe_name, " + str(SQLNames[name]) + ", units, sensor_timestamp) VALUES (\'" + str(sensorNames[name]) + "\', \'" + str(value) + "\', \'" + str(units) + "\', \'" + str(timeStamp) + "\');")
+            print(query)
+            cursor.execute(
+                query 
         )
-    except mariadb.Error as e:
-        print(f"Error connecting to MariaDB Platform: {e}")
-        raise Exception("Error occured connecting to MariaDB")
-    cursor = conn.cursor()
-    if name in SQLNames:
-        print(SQLNames[name])
-        cursor.execute(
-                "INSERT INTO " + SQLNames[name] + " (probe_name, " + SQLNames[name] + ", sensor_timestamp) VALUES (?, ?, ?)", 
-                (sensorNames[name], value, timeStamp))
+        #else:
+        #    query = "INSERT INTO " + str(SQLNames[name]) + " (probe_name, " + str(SQLNames[name]) + ", sensor_timestamp) VALUES (\"" + str(sensorNames[name]) + "\", \"" + str(value) + "\", \"" + str(timeStamp) + "\");"
+        #    print(query)
+        #    cursor.execute(
+        #        query 
+        #    )
 
 
 sleep(1)
