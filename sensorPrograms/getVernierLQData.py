@@ -90,7 +90,7 @@ else:
 
 
 sleep(4)
-for i in range(0, 60):
+for i in range(0, 50):
     sleep(sampleRate)
     response = requests.get("http://" + DataShareAdress + "/status")
     responseData = response.json()
@@ -119,7 +119,7 @@ for i in range(0, 60):
         if timeStamp == "":
             raise Exception("Data is being returned as empty, this can be caused by interpolate time-based data being set to false(see note at top of file)")
         if name == "pH":
-            if value < 5.5:
+            if value < 0.5:
                 sendEmail(
                     emailSender,
                     emailPassword,
