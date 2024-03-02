@@ -1,5 +1,5 @@
 Note that most of these programs are not mine, and the code is taken from the sensor's respective wikis.
-In the event that the code is outdated, search for the sensor name, usually DF or QC and then capital letters, with the word "wiki" at the end.
+In the event that the code is outdated, search for the sensor name, usually DF or QC and then capital letters, with the word "wiki" at the end, and use the code they post in your HydroBrain.
 Then, report the outdated code to me through github.
 
 Backlog includes support for
