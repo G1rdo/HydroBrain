@@ -133,7 +133,7 @@ foreach ($activeSensors as $x) {
     $maxAcceptable = $acceptableValueRange[$x][1];
     $x = new valueData($x, $top, $bottom, $database);
     $array = get_object_vars($x);
-    var_dump($array);
+
 }
 
 
