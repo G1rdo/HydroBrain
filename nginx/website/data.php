@@ -54,16 +54,6 @@ try {
         die();
     }
 
-/*$dataPoints0 = array(
-	array("y" => 25, "label" => "Sunday"),
-	array("y" => 15, "label" => "Monday"),
-	array("y" => 25, "label" => "Tuesday"),
-	array("y" => 5, "label" => "Wednesday"),
-	array("y" => 10, "label" => "Thursday"),
-	array("y" => 0, "label" => "Friday"),
-	array("y" => 20, "label" => "Saturday")
-);
-print_r($dataPoints0);*/
 
  
 ?>
@@ -150,7 +140,7 @@ chart2.render();
                     <li class="nav-item"><a class="nav-link" href="https://github.com/G1rdo/HydroBrain/">Downloads</a></li>
                     <li class="nav-item"><a class="nav-link" href="./setup.html">Setup</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">About us</a></li>
-                </ul><a class="btn btn-primary ms-md-2" role="button" href="#">Button</a>
+                </ul><a class="btn btn-primary ms-md-2" role="Data" href="./data.php">Button</a>
             </div>
         </div>
     </nav>
