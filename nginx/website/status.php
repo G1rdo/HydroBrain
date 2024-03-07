@@ -1,6 +1,7 @@
 <?php
 $HYDROBRAINHOME = "Stringtoreplace";
 $cfgLocation = $HYDROBRAINHOME . "/HydroBrain/config.ini";
+
 try {
     $cfgArray = parse_ini_file($cfgLocation);
     if (!(is_readable($cfgLocation))) {
@@ -330,7 +331,31 @@ h2.unit-left {
   <h1 style="Background: GhostWhite; border-radius: 10px 0px 0px 10px;
 ">Status: <span class="name">Good</span></h1>
 </div>-->
-
+<?php>
+$count = 0;
+foreach ($activeSensors as $dataType) {
+  #The even numbered sensors in activeSensors will be on the left, while the odd will be on the right.
+  $count = ++$count;
+  if ($count % 2 == 1) {
+      $side = "right";
+  } else {
+      $side = "left";
+  }
+  #Gets the full rgb status color, and puts it into variable names for each color
+  $r = $valueData->statusColor[0];
+  $g = $valueData->statusColor[0];
+  $b = $valueData->statusColor[0];
+  $statusBar = "
+<div class=\"status-$side\">
+  <div class=\"dot-$side\" style=\"background-color:rgb($r, $g, $b;\"></div>
+  <h1>Status: <span class=\"name\">$valueData->status</span></h1>
+  <h1 class=\"unit-name-$side\">$dataType</h1>
+  <h2 class=\"unit-$side\">7.31</h2>
+</div>";
+  #Uses the above string as html code with the variables substituted in.
+  echo $statusBar;
+}
+<?>
 <div class="status-right">
   <div class="dot-right"></div>
   <h1>Status: <span class="name">Test</span></h1>
