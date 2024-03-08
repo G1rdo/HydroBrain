@@ -34,11 +34,11 @@ sudo mariadb -e "DROP DATABASE IF EXISTS test"
 sudo mariadb -e "FLUSH PRIVILEGES"
 
 
-#Create database and fill it with tables
+#Create sensor database and fill it with tables
 sudo mariadb -e "CREATE DATABASE IF NOT EXISTS sensor_data"
 
 sudo mariadb -e "use sensor_data;CREATE TABLE IF NOT EXISTS ph ( \
-    id INT NOT NULL auto_increment PRIMARY KEY, \
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, \
     probe_name ENUM($supportedpHSensors), \
     ph decimal (8, 6), \
     units ENUM($pHUnits), \
@@ -50,7 +50,7 @@ echo "pH table created."
 
 
 sudo mariadb -e "use sensor_data;CREATE TABLE IF NOT EXISTS dissolved_oxygen ( \
-    id INT NOT NULL auto_increment PRIMARY KEY, \
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, \
     probe_name ENUM($supportedDOSensors), \
     dissolved_oxygen decimal (13, 6), \
     units ENUM($DOUnits), \
@@ -61,7 +61,7 @@ sudo mariadb -e "use sensor_data;CREATE TABLE IF NOT EXISTS dissolved_oxygen ( \
 echo "DO table created."
 
 sudo mariadb -e "use sensor_data;CREATE TABLE IF NOT EXISTS electrical_conductivity ( \
-    id INT NOT NULL auto_increment PRIMARY KEY, \
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, \
     probe_name ENUM($supportedECSensors), \
     electrical_conductivity decimal (13, 6), \
     units ENUM($ECUnits), \
@@ -72,7 +72,7 @@ sudo mariadb -e "use sensor_data;CREATE TABLE IF NOT EXISTS electrical_conductiv
 echo "EC table created."
 
 sudo mariadb -e "use sensor_data;CREATE TABLE IF NOT EXISTS time ( \
-    id INT NOT NULL auto_increment PRIMARY KEY, \
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, \
     probe_name ENUM($supportedTimeSensors), \
     time decimal (13, 6), \
     units ENUM($TimeUnits), \
@@ -81,7 +81,19 @@ sudo mariadb -e "use sensor_data;CREATE TABLE IF NOT EXISTS time ( \
     ) ENGINE=INNODB;" \
  
 echo "Time table created."
+
+
+sudo mariadb -e "CREATE DATABASE IF NOT EXISTS user_data"
+
+sudo mariadb -e "use user_data;CREATE TABLE IF NOT EXISTS users ( \
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, \
+    username varchar(255) NOT NULL COMMENT 'The username of the user.', \
+    password varchar(255) NOT NULL COMMENT 'The password of the user.', \
+    name varchar(255) NULL DEFAULT '' COMMENT 'The name of the user.', \
+    ) ENGINE=INNODB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Storage for user authentication details.';" \
  
+echo "User table created."
+
  
 #Grant privileges to the website server to read data from the sensor_data database. 
 sudo mariadb -e "CREATE USER IF NOT EXISTS 'site_reader'@'localhost' IDENTIFIED BY '$reader_password'"
