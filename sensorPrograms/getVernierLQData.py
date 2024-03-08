@@ -109,16 +109,19 @@ for i in range(0, 50):
     currentSetID = setNumbers[max(setNumbers)]
 
     for columnID in sets[currentSetID]["colIDs"]:
-        print(columnID)
+        #print(columnID)
         name = columns[columnID]["name"]
-        value = float(columns[columnID]["liveValue"])
+        try:
+            value = float(columns[columnID]["liveValue"])
+        except:
+            value = 0
         units = columns[columnID]["units"]
         #timeStamp = datetime.fromtimestamp(columns[columnID]["liveValueTimeStamp"], timezone.utc)
         timeStamp = datetime.fromtimestamp(columns[columnID]["liveValueTimeStamp"])
 
         if timeStamp == "":
             raise Exception("Data is being returned as empty, this can be caused by interpolate time-based data being set to false(see note at top of file)")
-        if name == "pH":
+        '''~~if name == "pH":
             if value < 0.5:
                 sendEmail(
                     emailSender,
@@ -140,7 +143,7 @@ for i in range(0, 50):
                     Hydrobrain detected a pH level above 6.5 today
                     """
                 )
-                print("pH too high")
+                print("pH too high")'''
         print(f'{name} recorded as {value} {units} at {timeStamp}')
         #TODO:Format this as SQL query
         try:
@@ -161,11 +164,11 @@ for i in range(0, 50):
         if name in SQLNames:
             if units == "":
                 units = name
-            print(type(sensorNames))
-            print(sensorNames)
-            print(name)
-            print(sensorNames[name])
-            print(str(sensorNames[name])) #+ str(value) + units + "\", \"" + str(timeStamp))
+            #print(type(sensorNames))
+            #print(sensorNames)
+            #print(name)
+            #print(sensorNames[name])
+            #print(str(sensorNames[name])) #+ str(value) + units + "\", \"" + str(timeStamp))
             query = str("INSERT INTO " + str(SQLNames[name]) + " (probe_name, " + str(SQLNames[name]) + ", units, sensor_timestamp) VALUES (\'" + str(sensorNames[name]) + "\', \'" + str(value) + "\', \'" + str(units) + "\', \'" + str(timeStamp) + "\');")
             print(query)
             cursor.execute(
@@ -187,7 +190,7 @@ if not(previouslyCollecting):
     goodTurnOff = response.json()["result"]
     while not(goodTurnOff):
         print("Server responed that is has not ceased collecting data, trying again")
-        sleep(5)
+        sleep(10)
         response = requests.get("http://" + DataShareAdress + "/stop")
         goodTurnOff = response.json()["result"]
         print(goodTurnOff)
