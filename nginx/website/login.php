@@ -14,13 +14,14 @@ try {
     print $e->getMessage();
 }
 
-$user = 'site_reader';
-$password = $cfgArray['dataBaseReaderPassword'];
+$databaseUser = 'site_reader';
+$databasePassword = $cfgArray['dataBaseReaderPassword'];
 $database = "sensor_data";
-$table = "ph";
+$databaseTable = "ph";
+
 try {
     #If you see this and think that the user and password should be not global, dm me or make a pull request :)
-    $db = new PDO("mysql:host=localhost;dbname=$database", $GLOBALS['user'], $GLOBALS['password']);
+    $db = new PDO("mysql:host=localhost;dbname=$database", $databaseUser, $databasePassword);
     foreach($db->query("SELECT units, $valueType, sensor_timestamp FROM $valueType WHERE id = (SELECT MAX(id) FROM $valueType)") as $row) {
         $this->unit = $row['units'];
         $value = $row[$valueType];
