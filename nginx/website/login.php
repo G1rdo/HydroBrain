@@ -13,39 +13,23 @@ $userData = [
         'User Two',
     ],
 ];
-
+$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 foreach ($userData as $id => $userDatum) {
-    $stmt = $mysqli->prepare("INSERT INTO `users`(`username`, `password`, `name`) VALUES (?, ?, ?);");
-    $stmt->bind_param("sss", ...$userDatum);
-    $stmt->execute();
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     // prepare sql and bind parameters
-    $stmt = $conn->prepare("INSERT INTO MyGuests (firstname, lastname, email)
-  VALUES (:firstname, :lastname, :email)");
-  $stmt->bindParam(':firstname', $firstname);
-  $stmt->bindParam(':lastname', $lastname);
-  $stmt->bindParam(':email', $email);
-
-  // insert a row
-  $firstname = "John";
-  $lastname = "Doe";
-  $email = "john@example.com";
-  $stmt->execute();
-
-  // insert another row
-  $firstname = "Mary";
-  $lastname = "Moe";
-  $email = "mary@example.com";
-  $stmt->execute();
-
-  // insert another row
-  $firstname = "Julie";
-  $lastname = "Dooley";
-  $email = "julie@example.com";
-  $stmt->execute();
+    $stmt = $db->prepare("INSERT INTO users (username, password, name)
+    VALUES (:username, :password, :email)");
+    $stmt->bindParam(':username', $username);
+    $stmt->bindParam(':password', $password);
+    $stmt->bindParam(':name', $name);
+    // insert a row
+    $username = $userD;
+    $password = "Doe";
+    $name = "john@example.com";
+    $stmt->execute();
 }
 
 echo 'Authentication example table (re)created and the default users installed.' . PHP_EOL;
+/*
 $HYDROBRAINHOME = "Stringtoreplace";
 $cfgLocation = $HYDROBRAINHOME . "/HydroBrain/config.ini";
 try {
@@ -78,7 +62,7 @@ try {
 } catch (PDOException $e) {
     print "Error!: " . $e->getMessage() . "<br/>";
     die();
-}
+}*/
 
 ?>
 
