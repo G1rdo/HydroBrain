@@ -1,4 +1,6 @@
 <?php
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
 $HYDROBRAINHOME = "Stringtoreplace";
 $cfgLocation = $HYDROBRAINHOME . "/HydroBrain/config.ini";
 try {
@@ -16,18 +18,11 @@ try {
 
 $databaseUser = 'site_reader';
 $databasePassword = $cfgArray['dataBaseReaderPassword'];
-$database = "sensor_data";
-$databaseTable = "ph";
+$database = "user_data";
+$databaseTable = "users";
 
 try {
-    #If you see this and think that the user and password should be not global, dm me or make a pull request :)
     $db = new PDO("mysql:host=localhost;dbname=$database", $databaseUser, $databasePassword);
-    foreach($db->query("SELECT units, $valueType, sensor_timestamp FROM $valueType WHERE id = (SELECT MAX(id) FROM $valueType)") as $row) {
-        $this->unit = $row['units'];
-        $value = $row[$valueType];
-        $this->value = $value;
-        $this->valueDate = $row['sensor_timestamp'];
-    }
 } catch (PDOException $e) {
     print "Error!: " . $e->getMessage() . "<br/>";
     die();
