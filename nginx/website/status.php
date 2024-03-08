@@ -1,8 +1,8 @@
 <?php
 $HYDROBRAINHOME = "Stringtoreplace";
 $cfgLocation = $HYDROBRAINHOME . "/HydroBrain/config.ini";
-
 try {
+    #Try and read the config file
     $cfgArray = parse_ini_file($cfgLocation);
     if (!(is_readable($cfgLocation))) {
         throw new Exception("Parsing of config file failed, no read permission.");
@@ -13,48 +13,32 @@ try {
 } catch (Exception $e) {
     print $e->getMessage();
 }
+
 $user = 'site_reader';
 $password = $cfgArray['dataBaseReaderPassword'];
 $database = "sensor_data";
 $table = "ph";
-$dataPoints0 = array();
-try {
-    $db = new PDO("mysql:host=localhost;dbname=$database", $user, $password);
-    foreach($db->query("SELECT ph, sql_timestamp FROM $table WHERE id > (SELECT count(id)/2 FROM $table)") as $row) {#SELECT ph, sql_timestamp FROM $table") as $row) {
-        #$dataPoints0[] = array("x" => $row['sql_timestamp'], "y" => $row['ph']);
-        $dataPoints0[] = array("label" => $row['sql_timestamp'], "y" => $row['ph']);
-        #echo "<li>" . $row['ph'] . "</li>";
-        #echo "<li>" . $row['sql_timestamp'] . "</li>";
-    }
-    
-  } catch (PDOException $e) {
-      print "Error!: " . $e->getMessage() . "<br/>";
-      die();
-  }
 
 
-  #TODO: Ctrl+f replace top -> max and bottom -> min
-  $top = 1.2;
-  $bottom = 0.8;
-  $value = 1.1;
-  $color = array(0, 0, 0);
-  $activeSensors = array("ph", "electrical_conductivity", "dissolved_oxygen");
-  #$acceptableValueRange = {"ph": (5.5, 6.5), "electrical_conductivity": (0.8, 1.2), "dissolved_oxygen": (5, 14)}
-  $acceptableValueRange = [
-    "ph" => array(5.5, 6.5),
-    "electrical_conductivity" => array(0.8, 1.2),
-    "dissolved_oxygen" => array(5, 14)
+
+$color = array(0, 0, 0);
+$activeSensors = array("ph", "electrical_conductivity", "dissolved_oxygen");
+#TODO: make this be taken from the config file
+$acceptableValueRange = [
+  "ph" => array(5.5, 6.5),
+  "electrical_conductivity" => array(150, 200),
+  "dissolved_oxygen" => array(5, 14)
 ];
  
-function valToRGB($value, $top, $bottom) {
+function valToRGB($value, $max, $min) {
   #If the value is between the max and minimum acceptable values,
   # return status as good and color as green
-  if ($top >= $value and $value >= $bottom) {
+  if ($max >= $value and $value >= $min) {
       $status = "Good";
       $statusColor = array(0, 255, 0);
-  } elseif ($value > $top) {
+  } elseif ($value > $max) {
       $status = "High";
-      $variation = abs(fdiv(($value-$top), ($top-$bottom)));
+      $variation = abs(fdiv(($value-$max), ($max-$min)));
       if ($variation > 1) {
           $variation = 1;
       } elseif ($variation < 0) {
@@ -63,9 +47,9 @@ function valToRGB($value, $top, $bottom) {
       #Variation is basically how red it is, from 0 to 1. So when variation is .5, it's yellow, halfway between red and green
       $statusColor = array(intval(round(255*$variation)), 255-intval(round(255*$variation)), 0);
          
-  } elseif ($value < $bottom) {
+  } elseif ($value < $min) {
       $status = "Low";
-      $variation = abs(fdiv(($value-$bottom), ($top-$bottom)));
+      $variation = abs(fdiv(($value-$min), ($max-$min)));
       if ($variation > 1) {
           $variation = 1;
       } elseif ($variation < 0) {
@@ -77,8 +61,7 @@ function valToRGB($value, $top, $bottom) {
   return array($statusColor, $status);
 }
  
-echo "test";
-echo $database;
+
   class valueData {
       public $valueType;
       public $unit;
@@ -91,19 +74,14 @@ echo $database;
       public $valueDate;
      
      
-      function __construct($valueType, $top, $bottom, $database) {
+      function __construct($valueType, $max, $min, $database) {
           $this->valueType = $valueType;
-          $this->maxAcceptable = $top;
-          $this->minAcceptable = $bottom;
+          $this->maxAcceptable = $max;
+          $this->minAcceptable = $min;
           $this->sourceDataBaseTable = $database;
          
-          #$this->unit = "";
-          #$value = 1.5;
-          #$this->value = $value;
-          #$this->valueDate = "2024-02-25 21:12:26";
-          echo "test";
-          echo $database;
-          echo "<br>";
+
+
           try {
               #If you see this and think that the user and password should be not global, dm me or make a pull request :)
               $db = new PDO("mysql:host=localhost;dbname=$database", $GLOBALS['user'], $GLOBALS['password']);
@@ -118,28 +96,15 @@ echo $database;
               die();
           }
          
-         $statusArray = valToRGB($value, $top, $bottom);
+         $statusArray = valToRGB($value, $max, $min);
          $statusColor = array($statusArray[0][0], $statusArray[0][1], $statusArray[0][2]);
          $this->statusColor = $statusColor;
          $status = $statusArray[1];
          $this->status = $status;
-     
-   
       }
   }
- 
-foreach ($activeSensors as $x) {
-    echo "$x\n";
-    $minAcceptable = $acceptableValueRange[$x][0];
-    $maxAcceptable = $acceptableValueRange[$x][1];
-    $x = new valueData($x, $top, $bottom, $database);
-    $array = get_object_vars($x);
-
-}
-
-
- 
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -215,7 +180,7 @@ var something=<?php echo json_encode($a); ?>;
   left: 20px;
   height: 60px;
   width: 60px;
-  background-color: #bbb;
+  /*background-color: #bbb;*/
   border-radius: 50%;
   display: block;
 }
@@ -230,12 +195,12 @@ var something=<?php echo json_encode($a); ?>;
   right: 20px;
   height: 60px;
   width: 60px;
-  background-color: #bbb;
+  /*background-color: #bbb;*/
   border-radius: 50%;
   display: block;
 }
 /*p.detail { color:#4C4C4C;font-weight:bold;font-family:Calibri;font-size:20 }*/
-span.name { color:#00BF63;font-weight:bold;font-family:Tahoma;font-size:20 }
+/*span.name { color:#00BF63;font-weight:bold;font-family:Tahoma;font-size:20 }*/
 h1 {
   /*font-family: Andale Mono, monospace;*/
   /*font-family: arial black;*/
@@ -331,9 +296,9 @@ h2.unit-left {
   <h1 style="Background: GhostWhite; border-radius: 10px 0px 0px 10px;
 ">Status: <span class="name">Good</span></h1>
 </div>-->
-<?php>
+<?php
 $count = 0;
-foreach ($activeSensors as $dataType) {
+foreach ($activeSensors as $valueData) {
   #The even numbered sensors in activeSensors will be on the left, while the odd will be on the right.
   $count = ++$count;
   if ($count % 2 == 1) {
@@ -341,22 +306,25 @@ foreach ($activeSensors as $dataType) {
   } else {
       $side = "left";
   }
+  $minAcceptable = $acceptableValueRange[$valueData][0];
+  $maxAcceptable = $acceptableValueRange[$valueData][1];
+  $valueData = new valueData($valueData, $maxAcceptable, $minAcceptable, $database);
   #Gets the full rgb status color, and puts it into variable names for each color
   $r = $valueData->statusColor[0];
-  $g = $valueData->statusColor[0];
-  $b = $valueData->statusColor[0];
+  $g = $valueData->statusColor[1];
+  $b = $valueData->statusColor[2];
   $statusBar = "
 <div class=\"status-$side\">
-  <div class=\"dot-$side\" style=\"background-color:rgb($r, $g, $b;\"></div>
+  <div class=\"dot-$side\" style=\"background-color:rgb($r, $g, $b);\"></div>
   <h1>Status: <span class=\"name\">$valueData->status</span></h1>
   <h1 class=\"unit-name-$side\">$dataType</h1>
-  <h2 class=\"unit-$side\">7.31</h2>
+  <h2 class=\"unit-$side\">$valueData->value</h2>
 </div>";
   #Uses the above string as html code with the variables substituted in.
   echo $statusBar;
 }
-<?>
-<div class="status-right">
+?>
+<!--<div class="status-right">
   <div class="dot-right"></div>
   <h1>Status: <span class="name">Test</span></h1>
   <h1 class="unit-name-right">pH</h1>
@@ -376,7 +344,7 @@ foreach ($activeSensors as $dataType) {
 <div class="status-left">
   <div class="dot-left"></div>
   <h1>Status: <span class="name">Good</span></h1>
-</div>
+</div> -->
 
 </body>
 </html>
