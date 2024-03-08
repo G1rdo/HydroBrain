@@ -19,7 +19,6 @@ try {
 $databaseUser = 'site_reader';
 $databasePassword = $cfgArray['dataBaseReaderPassword'];
 $database = "user_data";
-$databaseTable = "users";
 
 try {
     $db = new PDO("mysql:host=localhost;dbname=$database", $databaseUser, $databasePassword);
