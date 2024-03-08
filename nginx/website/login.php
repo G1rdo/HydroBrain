@@ -1,4 +1,5 @@
 <?php
+require_once 'dbconnection.php';
 $HYDROBRAINHOME = "Stringtoreplace";
 $cfgLocation = $HYDROBRAINHOME . "/HydroBrain/config.ini";
 try {
