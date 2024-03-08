@@ -1,5 +1,51 @@
 <?php
 require_once 'dbconnection.php';
+// Generate two test users.
+$userData = [
+    [
+        'user1',
+        password_hash('password', PASSWORD_DEFAULT),
+        'User One',
+    ],
+    [
+        'user2',
+        password_hash('letmein', PASSWORD_DEFAULT),
+        'User Two',
+    ],
+];
+
+foreach ($userData as $id => $userDatum) {
+    $stmt = $mysqli->prepare("INSERT INTO `users`(`username`, `password`, `name`) VALUES (?, ?, ?);");
+    $stmt->bind_param("sss", ...$userDatum);
+    $stmt->execute();
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // prepare sql and bind parameters
+    $stmt = $conn->prepare("INSERT INTO MyGuests (firstname, lastname, email)
+  VALUES (:firstname, :lastname, :email)");
+  $stmt->bindParam(':firstname', $firstname);
+  $stmt->bindParam(':lastname', $lastname);
+  $stmt->bindParam(':email', $email);
+
+  // insert a row
+  $firstname = "John";
+  $lastname = "Doe";
+  $email = "john@example.com";
+  $stmt->execute();
+
+  // insert another row
+  $firstname = "Mary";
+  $lastname = "Moe";
+  $email = "mary@example.com";
+  $stmt->execute();
+
+  // insert another row
+  $firstname = "Julie";
+  $lastname = "Dooley";
+  $email = "julie@example.com";
+  $stmt->execute();
+}
+
+echo 'Authentication example table (re)created and the default users installed.' . PHP_EOL;
 $HYDROBRAINHOME = "Stringtoreplace";
 $cfgLocation = $HYDROBRAINHOME . "/HydroBrain/config.ini";
 try {
