@@ -18,91 +18,20 @@ $user = 'site_reader';
 $password = $cfgArray['dataBaseReaderPassword'];
 $database = "sensor_data";
 $table = "ph";
-
-
-
-$color = array(0, 0, 0);
-$activeSensors = array("ph", "electrical_conductivity", "dissolved_oxygen");
-#TODO: make this be taken from the config file
-$acceptableValueRange = [
-  "ph" => array(5.5, 6.5),
-  "electrical_conductivity" => array(150, 200),
-  "dissolved_oxygen" => array(5, 14)
-];
- 
-function valToRGB($value, $max, $min) {
-  #If the value is between the max and minimum acceptable values,
-  # return status as good and color as green
-  if ($max >= $value and $value >= $min) {
-      $status = "Good";
-      $statusColor = array(0, 255, 0);
-  } elseif ($value > $max) {
-      $status = "High";
-      $variation = abs(fdiv(($value-$max), ($max-$min)));
-      if ($variation > 1) {
-          $variation = 1;
-      } elseif ($variation < 0) {
-          $variation = 0;
-      }
-      #Variation is basically how red it is, from 0 to 1. So when variation is .5, it's yellow, halfway between red and green
-      $statusColor = array(intval(round(255*$variation)), 255-intval(round(255*$variation)), 0);
-         
-  } elseif ($value < $min) {
-      $status = "Low";
-      $variation = abs(fdiv(($value-$min), ($max-$min)));
-      if ($variation > 1) {
-          $variation = 1;
-      } elseif ($variation < 0) {
-          $variation = 0;
-      }
-      #Variation is basically how red it is, from 0 to 1. So when variation is .5, it's yellow, halfway between red and green
-      $statusColor = array(intval(round(255*$variation)), 255-intval(round(255*$variation)), 0);
-  }
-  return array($statusColor, $status);
+try {
+    #If you see this and think that the user and password should be not global, dm me or make a pull request :)
+    $db = new PDO("mysql:host=localhost;dbname=$database", $GLOBALS['user'], $GLOBALS['password']);
+    foreach($db->query("SELECT units, $valueType, sensor_timestamp FROM $valueType WHERE id = (SELECT MAX(id) FROM $valueType)") as $row) {
+        $this->unit = $row['units'];
+        $value = $row[$valueType];
+        $this->value = $value;
+        $this->valueDate = $row['sensor_timestamp'];
+    }
+} catch (PDOException $e) {
+    print "Error!: " . $e->getMessage() . "<br/>";
+    die();
 }
- 
 
-  class valueData {
-      public $valueType;
-      public $unit;
-      public $value;
-      public $maxAcceptable;
-      public $minAcceptable;
-      public $sourceDataBaseTable;
-      public $status;
-      public $statusColor;
-      public $valueDate;
-     
-     
-      function __construct($valueType, $max, $min, $database) {
-          $this->valueType = $valueType;
-          $this->maxAcceptable = $max;
-          $this->minAcceptable = $min;
-          $this->sourceDataBaseTable = $database;
-         
-
-
-          try {
-              #If you see this and think that the user and password should be not global, dm me or make a pull request :)
-              $db = new PDO("mysql:host=localhost;dbname=$database", $GLOBALS['user'], $GLOBALS['password']);
-              foreach($db->query("SELECT units, $valueType, sensor_timestamp FROM $valueType WHERE id = (SELECT MAX(id) FROM $valueType)") as $row) {
-                $this->unit = $row['units'];
-                $value = $row[$valueType];
-                $this->value = $value;
-                $this->valueDate = $row['sensor_timestamp'];
-              }
-          } catch (PDOException $e) {
-              print "Error!: " . $e->getMessage() . "<br/>";
-              die();
-          }
-         
-         $statusArray = valToRGB($value, $max, $min);
-         $statusColor = array($statusArray[0][0], $statusArray[0][1], $statusArray[0][2]);
-         $this->statusColor = $statusColor;
-         $status = $statusArray[1];
-         $this->status = $status;
-      }
-  }
 ?>
 
 <!DOCTYPE html>
@@ -287,7 +216,7 @@ h2.unit-left {
     </nav>
     <script src="assets/bootstrap/js/bootstrap.min.js"></script>
 
-
+<h1>WARNING: This login page is not secure, do not input confidential information!</h1>
 <div class="center">
   <h1 style="Background: GhostWhite; border-radius: 5px;
 ">Status: <span class="name">Good</span></h1>
@@ -296,55 +225,6 @@ h2.unit-left {
   <h1 style="Background: GhostWhite; border-radius: 10px 0px 0px 10px;
 ">Status: <span class="name">Good</span></h1>
 </div>-->
-<?php
-$count = 0;
-foreach ($activeSensors as $valueData) {
-  #The even numbered sensors in activeSensors will be on the left, while the odd will be on the right.
-  $count = ++$count;
-  if ($count % 2 == 1) {
-      $side = "right";
-  } else {
-      $side = "left";
-  }
-  $minAcceptable = $acceptableValueRange[$valueData][0];
-  $maxAcceptable = $acceptableValueRange[$valueData][1];
-  $valueData = new valueData($valueData, $maxAcceptable, $minAcceptable, $database);
-  #Gets the full rgb status color, and puts it into variable names for each color
-  $r = $valueData->statusColor[0];
-  $g = $valueData->statusColor[1];
-  $b = $valueData->statusColor[2];
-  $statusBar = "
-<div class=\"status-$side\">
-  <div class=\"dot-$side\" style=\"background-color:rgb($r, $g, $b);\"></div>
-  <h1>Status: <span class=\"name\">$valueData->status</span></h1>
-  <h1 class=\"unit-name-$side\">$dataType</h1>
-  <h2 class=\"unit-$side\">$valueData->value</h2>
-</div>";
-  #Uses the above string as html code with the variables substituted in.
-  echo $statusBar;
-}
-?>
-<!--<div class="status-right">
-  <div class="dot-right"></div>
-  <h1>Status: <span class="name">Test</span></h1>
-  <h1 class="unit-name-right">pH</h1>
-  <h2 class="unit-right">7.31</h2>
-</div>
-<div class="status-left">
-  <div class="dot-left"></div>
-  <h1>Status: <span class="name">Test</span></h1>
-  <h1 class="unit-name-left">EC</h1>
-  <h2 class="unit-left">400</h2>
-</div>
-
-<div class="status-right">
-  <div class="dot-right"></div>
-  <h1>Status: <span class="name">Good</span></h1>
-</div>
-<div class="status-left">
-  <div class="dot-left"></div>
-  <h1>Status: <span class="name">Good</span></h1>
-</div> -->
 
 </body>
 </html>
