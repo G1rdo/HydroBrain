@@ -1,5 +1,74 @@
 <?php
+session_start();
+#If the has session data, then they are logged in and don't need to go to this page
+if (isset($_SESSION['user_id'])) {
+  header("Location: index.php");
+  exit();
+}
+
 require_once 'dbconnection.php';
+/*
+* Authenticate the user credentials by comparing them to the values in the database
+*
+* @param string $username
+*   Username passed to the function.
+* @param string $password
+*   Password passed to the function.
+* @param db $db
+*   Mariadb PDO database connection.
+*
+* @return string
+*   Retruns error messages or authenticates the user, returns nothing, and sends the user to the home page
+*/
+function authenticate(string $username, string $password, db $db):string {
+   // Ensure username and password contain data
+   if (empty($username) && empty($password)) {
+       return 'Please enter a username and password.';
+   }
+
+   // Search and return user id, name, and password from users database where the username is equal to the supplied one
+   $stmt = $db->prepare("SELECT id, name, password FROM users WHERE username = :username;");
+   $stmt->execute(['username' => $username]); 
+   $result = $stmt->fetch();
+
+   if ($result === null) {
+       return 'Username or password is incorrect.';
+   }
+
+   #TODO: check why this is done. Reset sets the pointer to its first element, but is this needed?
+   $result = reset($result);
+
+   // Validate the supplied password against the hashed password in the database.
+   if (password_verify($password, $result['password']) === false) {
+       return 'Username or password is incorrect.';
+   }
+
+   // The password validates correctly, so add their username to
+   // the $_SESSION variable, which will log the user in.
+   $_SESSION['username'] = $username;
+   $_SESSION['name'] = htmlspecialchars($result['name']);
+   $_SESSION['user_id'] = $result['id'];
+
+   // Send the user back to homepage.
+   header("Location: index.html");
+   exit();
+}
+
+if (isset($_POST['username']) && isset($_POST['password'])) {
+  // User credentials have been entered, trim them to prevent common
+  // whitespace mistakes.
+  $username = trim($_POST['username']);
+  $password = trim($_POST['password']);
+
+  // Include the database connection.
+  //does this really need to be repeated??
+  require_once 'dbconnection.php';
+
+  // Attempt to authenticate the user.
+  $error = authenticate($username, $password, $db);
+}
+
+
 // Generate two test users.
 $userData = [
     [
@@ -252,7 +321,10 @@ h2.unit-left {
 ">Status: <span class="name">Login</span></h1>
 </div>
 <form action="login.php" method="post">
-  
+  <?php if (empty($error) === false) { ?>
+    <p class="alert alert-danger"><?php echo $error; ?></p>
+  <?php } ?>
+
     <div class="login">
         <label class="form-label" for="login-username">Username</label>
         <input type="text" name="username" placeholder="Username" id="form-username" autocomplete="on" class="form-control" value="<?php echo $_POST['username'] ?? '';?>">
@@ -263,6 +335,7 @@ h2.unit-left {
 
     <button type="submit" class="login-button">Login</button>
 </form>
+
 <!--<div class="status-right">
   <h1 style="Background: GhostWhite; border-radius: 10px 0px 0px 10px;
 ">Status: <span class="name">Good</span></h1>
