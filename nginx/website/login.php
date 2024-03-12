@@ -14,17 +14,15 @@ $userData = [
     ],
 ];
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-foreach ($userData as $id => $userDatum) {
+foreach ($userData as $id => $userDat) {
     // prepare sql and bind parameters
     $stmt = $db->prepare("INSERT INTO users (username, password, name)
     VALUES (:username, :password, :email)");
-    $stmt->bindParam(':username', $username);
-    $stmt->bindParam(':password', $password);
-    $stmt->bindParam(':name', $name);
-    // insert a row
-    $username = $userD;
-    $password = "Doe";
-    $name = "john@example.com";
+    #Set each parameter for the prepared statement
+    $stmt->bindParam(':username', $userDatum[0]);
+    $stmt->bindParam(':password', $userDatum[1]);
+    $stmt->bindParam(':name', $userDatum[3]);
+    // insert the bound parameters
     $stmt->execute();
 }
 
@@ -251,8 +249,20 @@ h2.unit-left {
 <h1>WARNING: This login page is not secure, do not input confidential information!</h1>
 <div class="center">
   <h1 style="Background: GhostWhite; border-radius: 5px;
-">Status: <span class="name">Good</span></h1>
+">Status: <span class="name">Login</span></h1>
 </div>
+<form action="login.php" method="post">
+  
+    <div class="login">
+        <label class="form-label" for="login-username">Username</label>
+        <input type="text" name="username" placeholder="Username" id="form-username" autocomplete="on" class="form-control" value="<?php echo $_POST['username'] ?? '';?>">
+        <br>
+        <label class="form-label" for="login-password">Password</label>
+        <input type="password" name="password" placeholder="Password" id="form-password" autocomplete="on" class="form-control">
+    </div>
+
+    <button type="submit" class="login-button">Login</button>
+</form>
 <!--<div class="status-right">
   <h1 style="Background: GhostWhite; border-radius: 10px 0px 0px 10px;
 ">Status: <span class="name">Good</span></h1>
