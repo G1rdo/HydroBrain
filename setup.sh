@@ -6,7 +6,13 @@ sudo raspi-config nonint do_i2c 0
 sudo raspi-config nonint do_serial_hw 0
 sudo raspi-config nonint do_serial_cons 0
 # Install dependencies
-sudo apt-get install build-essential git python3 code nginx mariadb-server php8.2-fpm php-mysql sed -y
+sudo apt-get install build-essential git python3 code nginx mariadb-server php8.2-fpm php-mysql sed libnss3-tools -y
+
+#Install mkcert as binary
+curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64"
+chmod +x mkcert-v*-linux-amd64
+sudo cp mkcert-v*-linux-amd64 /usr/local/bin/mkcert
+rm mkcert-v*-linux-amd64
 
 #Get and set variables
 websitePort=$(sed -nr "/^\[website\]/ { :l /^sitePort[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" ~/HydroBrain/config.ini)
