@@ -3,6 +3,8 @@
 #Get all the varaibles we need
 root_password=$(sed -nr "/^\[database\]/ { :l /^dataBaseMainPassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" ~/HydroBrain/config.ini)
 echo $root_password
+config_password=$(sed -nr "/^\[database\]/ { :l /^dataBaseConfigPassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" ~/HydroBrain/config.ini)
+echo $config_password
 reader_password=$(sed -nr "/^\[database\]/ { :l /^dataBaseReaderPassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" ~/HydroBrain/config.ini)
 echo $reader_password
 inserter_password=$(sed -nr "/^\[database\]/ { :l /^dataBaseInserterPassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" ~/HydroBrain/config.ini)
@@ -32,6 +34,20 @@ sudo mariadb -e "DROP USER IF EXISTS ''@'$(hostname)'"
 sudo mariadb -e "DROP USER IF EXISTS ''@'localhost'"
 sudo mariadb -e "DROP DATABASE IF EXISTS test"
 sudo mariadb -e "FLUSH PRIVILEGES"
+
+#Create config database and fill it with tables
+sudo mariadb -e "CREATE DATABASE IF NOT EXISTS configuration"
+
+sudo mariadb -e "use configuration;CREATE TABLE IF NOT EXISTS sensors ( \
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, \
+    probe_name ENUM($supportedpHSensors), \
+    ph decimal (8, 6), \
+    units ENUM($pHUnits), \
+    sql_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, \
+    sensor_timestamp TIMESTAMP \
+    ) ENGINE=INNODB;" \
+ 
+echo "sensor configuration table created."
 
 
 #Create sensor database and fill it with tables
@@ -95,9 +111,15 @@ sudo mariadb -e "use user_data;CREATE TABLE IF NOT EXISTS users ( \
 echo "User table created."
 
  
-#Grant privileges to the website server to read data from the sensor_data database. 
+#Grant privileges to the unprivledged website server to read data from the sensor_data database. 
 sudo mariadb -e "CREATE USER IF NOT EXISTS 'site_reader'@'localhost' IDENTIFIED BY '$reader_password'"
 sudo mariadb -e "GRANT SELECT ON sensor_data.* TO 'site_reader'@'localhost' IDENTIFIED BY '$reader_password';"
+
+#Grant privileges to the privledged and authenticated website server user to write data to the config database. 
+sudo mariadb -e "CREATE USER IF NOT EXISTS 'system_config'@'localhost' IDENTIFIED BY '$config_password'"
+sudo mariadb -e "GRANT SELECT ON sensor_data.* TO 'system_config'@'localhost' IDENTIFIED BY '$config_password';"
+
+#Grant privileges to the sensors and data inputs to put data into the database
 sudo mariadb -e "CREATE USER IF NOT EXISTS 'data_inserter'@'localhost' IDENTIFIED BY '$inserter_password'"
 sudo mariadb -e "GRANT INSERT ON sensor_data.* TO 'data_inserter'@'localhost' IDENTIFIED BY '$inserter_password';"
 # Make our changes take effect
