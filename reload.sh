@@ -14,12 +14,12 @@ sudo systemctl start mariadb
 sudo chmod og+x nginx
 
 #Sets the port the site is hosted on
-sed -e "s/{portvar}/$websitePort/g" ~/HydroBrain/nginx/nginx_template.conf > ~/HydroBrain/nginx/nginx.conf
+sed -e "s/{portvar}/$websitePort/g" nginx/nginx_template.conf > nginx/nginx.conf
 
-sudo mv ~/HydroBrain/nginx/nginx.conf /etc/nginx
+sudo mv nginx/nginx.conf /etc/nginx
 #Removes the website already in /var/www/website and copies the website folder from the hydrobrain folder into it
 sudo rm -r /var/www/website
-sudo cp -r ~/HydroBrain/nginx/website /var/www
+sudo cp -r nginx/website /var/www
 #This replaces all instances of $HYDROBRAINHOME = "" with the same string but the home directory of the main user in it. 
 #It could only replace the first, and it breaks if the directory contains the @ symbol in its name, but this was so horrible to make I am not editing it
 sudo sed -i --expression "s@^\$HYDROBRAINHOME = \".*\"\;@\$HYDROBRAINHOME = \"$HomeDir\"\;@" /var/www/website/ph.php
