@@ -13,7 +13,13 @@ if (!isset($_SESSION['user_id'])) {
 
 # Load the page
 function loadPage() {
-  echo("page loaded");
+    echo("page loaded");
+    if (isset($_POST['username']) && isset($_POST['password'])) {
+        // User credentials have been entered, trim them to prevent common
+        // whitespace mistakes.
+        $username = trim($_POST['username']);
+        $password = trim($_POST['password']);
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -26,11 +32,24 @@ function loadPage() {
     <meta name="keywords" content="settings, config, configuration, HydroBrain, school">
     <!-- If you choose to modify your schools HydroBrain site, feel free to put your name below -->
     <meta name="author" content="">
-    <title>HydroBrain</title>
+    <title>HydroBrain Settings</title>
 </head>
 
 <body>
-    <?php require 'assets/html/header.html';?>
+<?php require 'assets/html/header.html';?>
+
+<form action="settings.php" method="post">
+    <div class="login">
+        <label class="form-label" for="login-username">Username</label>
+        <input type="text" name="username" placeholder="Username" id="form-username" autocomplete="on" class="form-control" value="<?php echo $_POST['username'] ?? '';?>">
+        <br>
+        <label class="form-label" for="login-password">Password</label>
+        <input type="password" name="password" placeholder="Password" id="form-password" autocomplete="on" class="form-control">
+    </div>
+
+    <button type="submit" class="login-button">Login</button>
+</form>
+
 </body>
 
 </html>
