@@ -10,7 +10,25 @@ if (!isset($_SESSION['user_id'])) {
   // If the user's userid is set, then load the page
   loadPage();
 } 
-
+#Translates database data type to the html form version
+function translateDbTohtml($dbType) {
+    $translate = array(
+        'BOOLEAN' => 'checkbox'
+        'VAR_STRING' => 'string',
+        'STRING' => 'string',
+        'BLOB' => 'blob',
+        'LONGLONG' => 'int',
+        'LONG' => 'int',
+        #'SHORT' => 'number\" min="', doesnt seem to be supported by mariadb
+        'DATETIME' => 'datetime',
+        'DATE' => 'date',
+        'FLOAT' => 'number" min="-34020000000000000" max="34020000000000000"',
+        'DOUBLE' => 'number" min="-34020000000000000" max="34020000000000000"',
+        'TIMESTAMP' => 'timestamp'
+    );
+    #Returns the translated database type
+    return $translate[$dbType];
+}
 # Load the page
 function loadPage() {
     echo("page loaded");
