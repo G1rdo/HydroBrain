@@ -14,12 +14,20 @@ if (!isset($_SESSION['user_id'])) {
 # Load the page
 function loadPage() {
     echo("page loaded");
-    if (isset($_POST['username']) && isset($_POST['password'])) {
-        // User credentials have been entered, trim them to prevent common
-        // whitespace mistakes.
-        $username = trim($_POST['username']);
-        $password = trim($_POST['password']);
+    try {
+        #If you see this and think that the user and password should be not global, dm me or make a pull request :)
+        $db = new PDO("mysql:host=localhost;dbname=$database", $GLOBALS['user'], $GLOBALS['password']);
+        foreach($db->query("SELECT units, $valueType, sensor_timestamp FROM $valueType WHERE id = (SELECT MAX(id) FROM $valueType)") as $row) {
+            $this->unit = $row['units'];
+            $value = $row[$valueType];
+            $this->value = $value;
+            $this->valueDate = $row['sensor_timestamp'];
+        }
+    } catch (PDOException $e) {
+        print "Error!: " . $e->getMessage() . "<br/>";
+        die();
     }
+         
 }
 ?>
 <!DOCTYPE html>
