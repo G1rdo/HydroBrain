@@ -14,10 +14,11 @@ if (!isset($_SESSION['user_id'])) {
 # Load the page
 function loadPage() {
     echo("page loaded");
+    require 'assets/html/configEditorAccount.php';
     try {
         #If you see this and think that the user and password should be not global, dm me or make a pull request :)
-        $db = new PDO("mysql:host=localhost;dbname=$database", $GLOBALS['user'], $GLOBALS['password']);
-        foreach($db->query("SELECT units, $valueType, sensor_timestamp FROM $valueType WHERE id = (SELECT MAX(id) FROM $valueType)") as $row) {
+        $db = new PDO("mysql:host=localhost;dbname=config", $configEditUser, $configEditPassword);
+        foreach($db->query("SELECT rule, value, edit_date FROM main WHERE id = (SELECT MAX(id) FROM $valueType)") as $row) {
             $this->unit = $row['units'];
             $value = $row[$valueType];
             $this->value = $value;
@@ -53,6 +54,29 @@ function loadPage() {
         <br>
         <label class="form-label" for="login-password">Password</label>
         <input type="password" name="password" placeholder="Password" id="form-password" autocomplete="on" class="form-control">
+
+    <?php
+    #Get the username and password variables for the config editing account
+    require 'assets/html/configEditorAccount.php';
+    try {
+        #If you see this and think that the user and password should be not global, dm me or make a pull request :)
+        $db = new PDO("mysql:host=localhost;dbname=config", $configEditUser, $configEditPassword);
+        foreach($db->query("SELECT rule, value, edit_date FROM main") as $row) {
+            $rule = $row['rule'];
+            $value = $row['value'];
+            $editDate = $row['edit_date'];
+            #WARINGING: Unfinished. Steps to complete in email
+            $formQuestion = "
+        <br>
+        <label class=\"form-label\" for=\"login-username\">$rule</label>
+        <input type=\"text\" name=\"username\" placeholder=\"$value\" id=\"form-username\" autocomplete=\"on\" class=\"form-control\" value=\"<?php echo $_POST['username'] ?? '';?>\">";
+            echo $formQuestion;
+        }
+    } catch (PDOException $e) {
+        print "Error!: " . $e->getMessage() . "<br/>";
+        die();
+    }
+    ?>
     </div>
 
     <button type="submit" class="login-button">Login</button>
