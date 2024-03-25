@@ -26,7 +26,7 @@ function translateDbTohtml($dbType) {
         'DOUBLE' => 'number" min="-34020000000000000" max="34020000000000000"',
         'TIMESTAMP' => 'timestamp'
     );
-    #Returns the translated database type
+    #Returns the translated database type https://stackoverflow.com/questions/3157831/how-can-i-determine-the-column-type-with-pdo
     return $translate[$dbType];
 }
 # Load the page
