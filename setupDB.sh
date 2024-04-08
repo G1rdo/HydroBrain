@@ -1,5 +1,20 @@
 #!/bin/bash
- 
+
+
+: '
+Gets database startup variables from the config.ini config page
+
+@param string $foo
+  What is the 1st param
+@param string $bar
+  What is the 2nd param
+@param string $thin
+  What is the 3rd param
+
+@return array
+  What is the thing returned?
+'
+
 #Get all the varaibles we need
 root_password=$(sed -nr "/^\[database\]/ { :l /^dataBaseMainPassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" config.ini)
 echo $root_password
