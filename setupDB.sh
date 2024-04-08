@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+declare -A configRules
 : '
 Gets database startup variables from the config.ini config page
 
@@ -14,7 +14,9 @@ Gets database startup variables from the config.ini config page
 @return array
   What is the thing returned?
 '
-
+function example() {
+  configRules+=([c]=789)
+}
 #Get all the varaibles we need
 root_password=$(sed -nr "/^\[database\]/ { :l /^dataBaseMainPassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" config.ini)
 echo $root_password
