@@ -1,22 +1,26 @@
 #!/bin/bash
-
+#Declare the associative array configRules
 declare -A configRules
 : '
-Gets database startup variables from the config.ini config page
+Gets database startup variables from the config.ini config page, by their key and section
 
-@param string $foo
-  What is the 1st param
-@param string $bar
-  What is the 2nd param
-@param string $thin
-  What is the 3rd param
+@param string $sourceRule
+  The name of the source rule (the key)
+@param string $sourceSection
+  The section in the config file that the key is under
 
 @return array
   What is the thing returned?
 '
-function example() {
-  configRules+=([c]=789)
+getVariable() {
+  #In the file config.ini, search for the first rule with the key of $1 after the section titled $2
+  $ruleValue=$(sed -nr "/^\[$2\]/ { :l /^$1[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" config.ini)
+  #Append the key and value pair to the configRules associative array
+  configRules+=([$1]=$ruleValue)
 }
+
+getVariable "dataBaseMainPassword" "database"
+echo "The Returned value is: "$configRules["dataBaseMainPassword"]
 #Get all the varaibles we need
 root_password=$(sed -nr "/^\[database\]/ { :l /^dataBaseMainPassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" config.ini)
 echo $root_password
