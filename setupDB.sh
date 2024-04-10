@@ -14,13 +14,15 @@ Gets database startup variables from the config.ini config page, by their key an
 '
 getVariable() {
   #In the file config.ini, search for the first rule with the key of $1 after the section titled $2
-  $ruleValue=$(sed -nr "/^\[$2\]/ { :l /^$1[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" config.ini)
+  ruleValue=$(sed -nr "/^\[$2\]/ { :l /^$1[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" config.ini)
   #Append the key and value pair to the configRules associative array
   configRules+=([$1]=$ruleValue)
+  echo "${configRules[*]}"
 }
 
 getVariable "dataBaseMainPassword" "database"
-echo "The Returned value is: "$configRules["dataBaseMainPassword"]
+echo "The Returned value is: ${configRules[dataBaseMainPassword]}"
+
 #Get all the varaibles we need
 root_password=$(sed -nr "/^\[database\]/ { :l /^dataBaseMainPassword[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" config.ini)
 echo $root_password
