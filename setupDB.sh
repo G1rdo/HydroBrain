@@ -1,7 +1,8 @@
 #!/bin/bash
 #Declare the associative array configRules
-declare -A configRules
 : '
+declare -A configRules
+
 Gets database startup variables from the config.ini config page, by their key and section
 
 @param string $sourceRule
@@ -11,7 +12,7 @@ Gets database startup variables from the config.ini config page, by their key an
 
 @return array
   What is the thing returned?
-'
+
 getVariable() {
   #In the file config.ini, search for the first rule with the key of $1 after the section titled $2
   ruleValue=$(sed -nr "/^\[$2\]/ { :l /^$1[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" config.ini)
@@ -48,7 +49,14 @@ echo $ECUnits
 supportedTimeSensors=$(sed -nr "/^\[database\]/ { :l /^supportedTimeSensors[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" config.ini)
 echo $supportedTimeSensors
 TimeUnits=$(sed -nr "/^\[database\]/ { :l /^TimeUnits[ ]*=/ { s/[^=]*=[ ]*//; p; q;}; n; b l;}" config.ini)
-echo $TimeUnits
+echo $TimeUnits'
+
+#Searches for the text between [database] and [website] in config.ini
+databaseConfig=$(sed -n '/\[database\]/,/\[website\]/p' config.ini)
+#Search for all key value pairs. This forces variable names to only contain letters, numbers, and underscores. It forces the values to not have any single quotes
+databaseConfig=$(echo "$databaseConfig" | grep -P "^(\w+='[^']*'(,'[^']*')*\$)")
+#Evaluates the key value pairs, which assigns them as variables
+eval "$databaseConfig"
 
 
 #This is a replacement for Mariadb-secure-installation
