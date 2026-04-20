@@ -1,0 +1,111 @@
+services:
+#  apache:
+#    build:
+#      context: ./apache
+#      dockerfile: Dockerfile
+#    container_name: apache
+#    ports:
+#      - "80:80"
+#    restart: always
+#    networks:
+#      - apache_network
+#    depends_on:
+#      - nodejs
+#
+#  nodejs:
+#    build:
+#      context: ./nodejs
+#      dockerfile: Dockerfile
+#    image: nodejs
+#    container_name: nodejs
+#    restart: unless-stopped
+#    networks:
+#      - apache_network
+  sql:
+    image: mysql:8.0
+    container_name: sql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      SCREEN_USER: ${SCREEN_USER}
+      SCREEN_PASSWORD: ${SCREEN_PASSWORD}
+      SENSOR_USER: ${SENSOR_USER}
+      SENSOR_PASSWORD: ${SENSOR_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+    - ./sql/init.sh:/docker-entrypoint-initdb.d/init.sh
+    networks:
+      - apache_network
+
+  screen:
+    build:
+      context: ./screen
+      dockerfile: Dockerfile
+    image: screen
+    container_name: screen
+    restart: unless-stopped
+    environment:
+      SCREEN_USER: ${SCREEN_USER}
+      SCREEN_PASSWORD: ${SCREEN_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
+    depends_on:
+      sql:
+        condition: service_healthy
+    networks:
+      - apache_network
+
+#  usb-tds-sensor:
+#    build:
+#      context: ./usb-tds-sensor
+#      dockerfile: Dockerfile
+#    image: usb-tds-sensor
+#    container_name: usb-tds-sensor
+#    restart: unless-stopped
+#    environment:
+#      SENSOR_USER: ${SENSOR_USER}
+#      SENSOR_PASSWORD: ${SENSOR_PASSWORD}
+#      MYSQL_DATABASE: ${MYSQL_DATABASE}
+#    devices:
+#      - "/dev/ttyUSB2:/dev/ttyUSB0"
+#    depends_on:
+#      sql:
+#        condition: service_healthy
+#    networks:
+#      - apache_network
+
+  adc-sensor:
+    build:
+      context: ./adc-sensor
+      dockerfile: Dockerfile
+    image: adc-sensor
+    container_name: adc-sensor
+    restart: unless-stopped
+    environment:
+#      BLINKA_RASPBERRYPI: 1
+      SENSOR_USER: ${SENSOR_USER}
+      SENSOR_PASSWORD: ${SENSOR_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    devices:
+      - "/dev/i2c-1:/dev/i2c-1"
+    privileged: true
+#    volumes:
+#      - /proc/cpuinfo:/proc/cpuinfo:ro
+    depends_on:
+      sql:
+        condition: service_healthy
+    networks:
+      - apache_network
+
+
+networks:
+  apache_network:
+    driver: bridge

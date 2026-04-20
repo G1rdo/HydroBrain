@@ -1,2 +1,1 @@
-#Ignores the virtual enviroment which is created by setup.sh for python.
-/hydrobrain_venv
+.env

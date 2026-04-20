@@ -1,0 +1,5 @@
+esptool
+pyserial
+mysql-connector-python 
+adafruit-circuitpython-ads1x15
+RPI.GPIO
