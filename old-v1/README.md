@@ -1,0 +1,1 @@
+Good afternoon. This is the directory for the old Hydrobrain Hydroponic System files. Instead of using Docker, it used a messy bash script that setup and reloaded the system. Some parts of this, such as the ./sensorPrograms/getVernierLQData.py file would be beneficial to update to the current version. Others should probably be left here.
